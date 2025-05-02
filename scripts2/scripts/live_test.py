@@ -1,9 +1,22 @@
 import sounddevice as sd
 import numpy as np
-import scipy.signal
 import pickle
-import librosa  # Necesario para lpc
+import librosa
 from numpy.polynomial import Polynomial
+
+'''
+Resultados de palabras:
+- Stop: 1
+- Continue: 2
+- Next: 3
+- Lift: 4
+- Drop: 5
+- Start: 6
+- Finish: 7
+- One: 8
+- Two: 9
+- Three: 10
+'''
 
 # ------------------ Funciones (Adaptadas del primer script) ------------------
 
@@ -45,7 +58,7 @@ def lpc_to_lsf(a):
     lsf = np.sort(np.abs(np.concatenate((P_angles, Q_angles))))
     return lsf
 
-def get_lpc_coefficients(frame, order=16):
+def get_lpc_coefficients(frame, order=12):
     return librosa.lpc(frame, order=order)
 
 def get_lsf_from_frame(frame, order=12):
@@ -54,7 +67,7 @@ def get_lsf_from_frame(frame, order=12):
         lsf = lpc_to_lsf(lpc)
         return lsf
     except Exception as e:
-        print(f"⚠️  Error al convertir a LSF: {e}")
+        print(f"Error al convertir a LSF: {e}")
         return None
 
 def lsf_distance(a, b):
@@ -72,9 +85,9 @@ try:
     with open('data/codebooks.pkl', 'rb') as f:
         codebooks = pickle.load(f)
     labels = sorted(codebooks.keys()) # Asumimos que las claves son los números/etiquetas
-    print("✅ Codebooks cargados correctamente.")
+    print("Codebooks cargados correctamente.")
 except FileNotFoundError:
-    print("❌ Error: No se encontró el archivo 'data/codebooks.pkl'. Asegúrate de haber entrenado los codebooks.")
+    print("Error: No se encontró el archivo 'data/codebooks.pkl'. Asegúrate de haber entrenado los codebooks.")
     exit()
 
 # ------------------ Función para reconocer la palabra en tiempo real ------------------
@@ -83,7 +96,7 @@ def recognize_word():
     print(f"Grabando durante {duration} segundos...")
     recording = sd.rec(int(samplerate * duration), samplerate=samplerate, channels=channels, dtype='float32')
     sd.wait()  # Esperar a que termine la grabación
-    print("¡Grabación finalizada!")
+    print("Grabación finalizada")
 
     signal = recording.flatten()
 
@@ -96,14 +109,14 @@ def recognize_word():
     voiced_frames = frames[voiced_mask]
 
     if voiced_frames.shape[0] == 0:
-        print("🔇 No se detectó voz en la grabación.")
+        print("No se detectó voz en la grabación.")
         return
 
     # --- Extracción de LSFs ---
     live_lsfs = np.array([get_lsf_from_frame(frame) for frame in voiced_frames if get_lsf_from_frame(frame) is not None])
 
     if live_lsfs.shape[0] == 0:
-        print("⚠️ No se pudieron extraer características LSF válidas.")
+        print("No se pudieron extraer características LSF válidas.")
         return
 
     # --- Comparación con Codebooks ---
@@ -120,7 +133,7 @@ def recognize_word():
     predicted_label = labels[predicted_index]
     confidence = 1 / (1 + distances[predicted_index]) # Una forma simple de "confianza"
 
-    print(f"🗣️ Palabra reconocida: {predicted_label} (confianza: {confidence:.2f})")
+    print(f"Palabra reconocida: {predicted_label} (confianza: {confidence:.2f})")
 
 # ------------------ Bucle principal para la prueba en tiempo real ------------------
 

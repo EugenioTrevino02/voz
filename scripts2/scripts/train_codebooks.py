@@ -8,7 +8,7 @@ with open('data/lsf_features.pkl', 'rb') as f:
     lsf_features = pickle.load(f)
 
 codebooks = {}
-n_clusters = 32  # Número de codevectors
+n_clusters = 10  # Número de codevectors
 
 # Organizar archivos por número
 grouped = {}
@@ -39,4 +39,4 @@ for num in grouped:
 with open('data/codebooks.pkl', 'wb') as f:
     pickle.dump(codebooks, f)
 
-print("✅ Entrenamiento de codebooks con LSFs completado.")
+print("Entrenamiento de codebooks con LSFs completado.")

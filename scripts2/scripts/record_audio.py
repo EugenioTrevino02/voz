@@ -24,5 +24,5 @@ for number in range(1, 11):
 
         filename = os.path.join(number_dir, f"num{number}_rep{repetition}.wav")
         sf.write(filename, recording, fs)
-        print(f"✅ Grabado: {filename}")
+        print(f"Grabado: {filename}")
 
